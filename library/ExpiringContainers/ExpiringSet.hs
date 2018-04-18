@@ -28,7 +28,7 @@ clean time (ExpiringSet intMultiMap hashMap) =
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
     newHash = A.filterWithKey (\_ k -> k >= key) hashMap
-    (oldMultiMap, newMultiMap) = (B.splitExpiring key intMultiMap)
+    (oldMultiMap, newMultiMap) = (B.split key intMultiMap)
     listElem = Data.Foldable.toList oldMultiMap
 
 insert :: (Hashable element, Ord element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element

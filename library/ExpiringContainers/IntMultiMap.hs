@@ -7,6 +7,7 @@ import Prelude
 import Data.Int
 import Data.Hashable
 import Data.Foldable
+import Control.Monad
 
 {-|
 
@@ -26,10 +27,7 @@ insert :: (Hashable value, Ord value) => Int -> value -> IntMultiMap value -> In
 insert key value (IntMultiMap intMap) =
   IntMultiMap $ A.update (\hash -> Just $ B.insert value hash) key intMap
 
-deleteExpring :: Int -> IntMultiMap value -> IntMultiMap value
-deleteExpring key (IntMultiMap intMap) = IntMultiMap $ A.filterWithKey (\k _ -> k >= key) intMap
-
-splitExpiring :: Int -> IntMultiMap value -> (IntMultiMap value, IntMultiMap value)
-splitExpiring key (IntMultiMap intMap) = (IntMultiMap oldMap, IntMultiMap newMap)
+split :: Int -> IntMultiMap value -> (IntMultiMap value, IntMultiMap value)
+split key (IntMultiMap intMap) = (IntMultiMap oldMap, IntMultiMap newMap)
   where
     (oldMap, newMap) = A.split key intMap
