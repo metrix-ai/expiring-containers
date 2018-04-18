@@ -8,19 +8,19 @@ import Data.Int
 import Data.Hashable
 import Data.Foldable
 
+{-|
+
+-}
 newtype IntMultiMap value =
   IntMultiMap (A.IntMap (B.HashSet value))
   deriving(Foldable)
 
 delete :: (Hashable value, Eq value) => Int {-^ Key -} -> value -> IntMultiMap value -> IntMultiMap value
 delete key value (IntMultiMap intMap) =
-  IntMultiMap $ A.update (f value) key intMap
+  IntMultiMap $ A.update f key intMap
   where
-    f value hashSet =
-      let newHashSet = B.delete value hashSet
-      in case B.null newHashSet of
-        False -> Just newHashSet
-        True -> Nothing
+    f hashSet =
+      mfilter (not . B.null) . Just $ B.delete value hashSet
 
 insert :: (Hashable value, Ord value) => Int -> value -> IntMultiMap value -> IntMultiMap value
 insert key value (IntMultiMap intMap) =

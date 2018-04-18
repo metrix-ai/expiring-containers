@@ -9,6 +9,9 @@ import Prelude
 import Data.Hashable
 import Data.List
 
+{-|
+
+-}
 data ExpiringMap key value =
   ExpiringMap
     (ExpiringSet key)
@@ -27,5 +30,4 @@ setCurrentTime time (ExpiringMap expSet hashMap) =
   ExpiringMap newExpSet newHashMap
     where
       (keys, newExpSet) = A.clean time expSet
-      -- hashMapWithoutKeys = foldl' (\hashMap' key -> HashMap.delete key hashMap') hashMap keys
       newHashMap = Data.List.foldl' (flip B.delete) hashMap keys
