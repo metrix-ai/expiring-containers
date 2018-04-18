@@ -37,6 +37,6 @@ insert time value (ExpiringSet intMultiMap hashMap) =
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
     startKey = A.lookup value hashMap
-    newMultiMap = case startKey of
-      Just k -> (B.insert k value $ B.delete k value intMultiMap)
-      Nothing -> (B.insert key value intMultiMap)
+    newMultiMap = B.insert key value $ case startKey of
+      Just k -> B.delete k value intMultiMap
+      Nothing -> intMultiMap
