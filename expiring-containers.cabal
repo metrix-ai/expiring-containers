@@ -44,4 +44,9 @@ library
   other-modules:
     ExpiringContainers.IntMultiMap
   build-depends:
-      containers >=0.5.10 && <0.5.15
+    base >=4.7 && <5,
+    time >=1.8 && <2,
+    hashable >=1.2 && <2,
+    timestamp >=0.1.0 && <0.1.2,
+    containers >=0.5.10 && <0.5.15,
+    unordered-containers >=0.2.8.0 && <0.3
