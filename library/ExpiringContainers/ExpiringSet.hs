@@ -2,7 +2,7 @@ module ExpiringContainers.ExpiringSet
   where
 
 import Data.HashMap.Strict as A
-import ExpiringContainers.IntMultiMap as B
+import IntMultiMap as B
 import Data.HashSet as C
 import Data.Time
 import Data.Int
