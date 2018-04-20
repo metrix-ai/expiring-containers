@@ -1,21 +1,27 @@
 module ExpiringContainers.ExpiringMap
-  where
+(
+  ExpiringMap,
+  insert,
+  lookup,
+  setCurrentTime,
+)
+where
 
-import ExpiringContainers.ExpiringSet as A
-import Data.HashMap.Strict as B
+import qualified ExpiringContainers.ExpiringSet as A
+import qualified Data.HashMap.Strict as B
 import Data.Time
 import Data.Maybe
-import Prelude
+import Prelude hiding (lookup)
 import Data.Hashable
-import Data.List
+import qualified Data.List as C
 
 {-|
 
 -}
 data ExpiringMap key value =
   ExpiringMap
-    (ExpiringSet key)
-    (HashMap key value)
+    (A.ExpiringSet key)
+    (B.HashMap key value)
 
 insert :: (Eq key, Ord key, Hashable key) => UTCTime {-^ Expiry time -} -> key -> value -> ExpiringMap key value -> ExpiringMap key value
 insert time key value (ExpiringMap expSet hashMap) =
@@ -30,4 +36,4 @@ setCurrentTime time (ExpiringMap expSet hashMap) =
   ExpiringMap newExpSet newHashMap
     where
       (keys, newExpSet) = A.clean time expSet
-      newHashMap = Data.List.foldl' (flip B.delete) hashMap keys
+      newHashMap = C.foldl' (flip B.delete) hashMap keys

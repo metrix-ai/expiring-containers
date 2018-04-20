@@ -1,9 +1,14 @@
 module ExpiringContainers.ExpiringSet
-  where
+(
+  ExpiringSet,
+  clean,
+  insert,
+)
+where
 
-import Data.HashMap.Strict as A
-import IntMultiMap as B
-import Data.HashSet as C
+import qualified Data.HashMap.Strict as A
+import qualified IntMultiMap as B
+import qualified Data.HashSet as C
 import Data.Time
 import Data.Int
 import Prelude
@@ -17,9 +22,9 @@ import Data.Foldable
 data ExpiringSet element =
   ExpiringSet
     {-| Elements indexed by timestamps -}
-    (IntMultiMap element)
+    (B.IntMultiMap element)
     {-| Timestamps indexed by elements -}
-    (HashMap element Int)
+    (A.HashMap element Int)
 
 
 clean :: (Hashable element, Ord element) => UTCTime -> ExpiringSet element -> ([element], ExpiringSet element)
