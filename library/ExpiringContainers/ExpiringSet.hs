@@ -2,6 +2,8 @@ module ExpiringContainers.ExpiringSet
 (
   ExpiringSet,
   -- * Construction
+  empty,
+  singleton,
 
   -- * List
   toList,
@@ -17,17 +19,13 @@ module ExpiringContainers.ExpiringSet
   memberTime,
   size,
 
-  -- * Conversions
-  empty,
-  singleton,
-
   -- * Filter
   clean,
 )
 where
 
 import qualified Data.HashMap.Strict as A
-import qualified IntMultiMap as B
+import qualified IntMultimap as B
 import qualified Data.HashSet as C
 import qualified Data.Foldable as D
 import qualified GHC.Exts as G

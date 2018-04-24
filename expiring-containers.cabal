@@ -1,7 +1,7 @@
 name:
   expiring-containers
 version:
-  0.1.1
+  0.1.1.1
 synopsis:
   Expiring containers
 category:
@@ -49,5 +49,5 @@ library
     hashable >=1.2 && <2,
     timestamp >=0.2 && <0.3,
     containers >=0.5.10 && <0.5.15,
-    int-multimap >=0.1.1.1 && <0.2,
+    int-multimap >=0.2 && <0.3,
     unordered-containers >=0.2.8.0 && <0.3
