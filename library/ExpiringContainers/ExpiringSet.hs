@@ -64,16 +64,16 @@ construct intMultiMap = ExpiringSet intMultiMap $
   Lists
 --------------------------------------------------------------------}
 instance (Eq a, Hashable a) => G.IsList (ExpiringSet a) where
-  type Item (ExpiringSet a) = (Int, a)
+  type Item (ExpiringSet a) = (UTCTime, a)
   toList = toList
   fromList = fromList
 
-toList :: ExpiringSet b -> [(Int, b)]
-toList (ExpiringSet intMultiMap _) = B.toList intMultiMap
+toList :: ExpiringSet a -> [(UTCTime, a)]
+toList (ExpiringSet intMultiMap _) = fmap (\(k, a) -> (,) (timestampUtcTime $ Timestamp $ fromIntegral k) a) $ B.toList intMultiMap
 
 fromList :: (Eq a, Hashable a) =>
-     [(Int, a)] -> ExpiringSet a
-fromList = construct . B.fromList
+     [(UTCTime, a)] -> ExpiringSet a
+fromList = construct . B.fromList . fmap (\(t, a) -> (,) (fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) t) a)
 
 {--------------------------------------------------------------------
   Construction
@@ -81,8 +81,10 @@ fromList = construct . B.fromList
 empty :: (Eq a, Hashable a) => ExpiringSet a
 empty = ExpiringSet B.empty A.empty
 
-singleton :: (Eq a, Hashable a) => Int -> a -> ExpiringSet a
-singleton k v = construct $ B.singleton k v
+singleton :: (Eq a, Hashable a) => UTCTime -> a -> ExpiringSet a
+singleton time v = construct $ B.singleton key v
+  where
+    key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
 {-# INLINABLE singleton #-}
 
 
@@ -98,8 +100,11 @@ clean time (ExpiringSet intMultiMap hashMap) =
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
     newHash = A.filterWithKey (\_ k -> k >= key) hashMap
-    (oldMultiMap, newMultiMap) = (B.split key intMultiMap)
-    listElem = D.toList oldMultiMap
+    (oldMultiMap, maybeElem, newMultiMap) = (B.splitLookup key intMultiMap)
+    element = case maybeElem of
+      Just a -> D.toList a
+      Nothing -> []
+    listElem = (D.toList oldMultiMap) ++ element
 
 {--------------------------------------------------------------------
   Basic interface
@@ -114,9 +119,10 @@ size (ExpiringSet _ hashMap) = A.size hashMap
 member :: (Eq a, Hashable a) => a -> ExpiringSet a -> Bool
 member a (ExpiringSet _ hashMap) = A.member a hashMap
 
-memberTime :: Int -> ExpiringSet a -> Bool
-memberTime key (ExpiringSet intMultiMap _) = B.member key intMultiMap
-
+memberTime :: UTCTime -> ExpiringSet a -> Bool
+memberTime time (ExpiringSet intMultiMap _) = B.member key intMultiMap
+  where
+    key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
 {-|
 
 -}
@@ -125,7 +131,4 @@ insert time value (ExpiringSet intMultiMap hashMap) =
   ExpiringSet newMultiMap (A.insert value key hashMap)
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
-    startKey = A.lookup value hashMap
-    newMultiMap = B.insert key value $ case startKey of
-      Just k -> B.delete k value intMultiMap
-      Nothing -> intMultiMap
+    newMultiMap = B.insert key value intMultiMap
