@@ -15,6 +15,7 @@ module ExpiringContainers.ExpiringSet
   -- * Basic interface
   null,
   insert,
+  delete,
   member,
   memberTime,
   size,
@@ -132,3 +133,9 @@ insert time value (ExpiringSet intMultiMap hashMap) =
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
     newMultiMap = B.insert key value intMultiMap
+
+delete :: (Hashable element, Ord element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
+delete time element (ExpiringSet intMultiMap _) =
+  construct $ B.delete key element intMultiMap
+  where
+    key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
