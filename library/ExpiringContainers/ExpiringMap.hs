@@ -13,6 +13,8 @@ module ExpiringContainers.ExpiringMap
   fromList,
 
   -- * Transformations
+  map,
+  mapWithKey,
 
   -- * Basic interface
   null,
@@ -27,7 +29,7 @@ import qualified ExpiringContainers.ExpiringSet as A
 import qualified Data.HashMap.Strict as B
 import Data.Time
 import Data.Maybe
-import Prelude hiding (lookup, null)
+import Prelude hiding (lookup, null, map)
 import Data.Hashable
 import qualified Data.Foldable as D
 import qualified Data.List as C
@@ -41,6 +43,17 @@ data ExpiringMap key value =
     (A.ExpiringSet key)
     (B.HashMap key value)
     deriving (Foldable)
+
+{--------------------------------------------------------------------
+  Transformations
+--------------------------------------------------------------------}
+map :: (v1 -> v2) -> ExpiringMap k v1 -> ExpiringMap k v2
+map f = mapWithKey (const f)
+{-# INLINE map #-}
+
+mapWithKey :: (k -> v1 -> v2) -> ExpiringMap k v1 -> ExpiringMap k v2
+mapWithKey f (ExpiringMap expiringSet hashMap) =
+  ExpiringMap expiringSet $ B.mapWithKey f hashMap
 
 {--------------------------------------------------------------------
   Lists
