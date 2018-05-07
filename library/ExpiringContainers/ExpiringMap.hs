@@ -85,7 +85,6 @@ singleton :: (Eq k, Hashable k) => UTCTime -> k -> v -> ExpiringMap k v
 singleton time k v = ExpiringMap (A.singleton time k) (B.singleton k v)
 {-# INLINABLE singleton #-}
 
-
 {--------------------------------------------------------------------
   Basic interface
 --------------------------------------------------------------------}
@@ -99,7 +98,7 @@ size (ExpiringMap _ hashMap) = B.size hashMap
 member :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Bool
 member key (ExpiringMap _ hashMap) = B.member key hashMap
 
-insert :: (Eq key, Ord key, Hashable key) => UTCTime {-^ Expiry time -} -> key -> value -> ExpiringMap key value -> ExpiringMap key value
+insert :: (Eq k, Ord k, Hashable k) => UTCTime {-^ Expiry time -} -> k -> v -> ExpiringMap k v -> ExpiringMap k v
 insert time key value (ExpiringMap expSet hashMap) =
   ExpiringMap (A.insert time key expSet) (B.insert key value hashMap)
 
@@ -107,11 +106,11 @@ delete :: (Eq k, Ord k, Hashable k) => UTCTime {-^ Expiry time -} -> k  -> Expir
 delete time key (ExpiringMap expSet hashMap) =
   ExpiringMap (A.delete time key expSet) (B.delete key hashMap)
 
-lookup :: (Eq key, Hashable key) => key -> ExpiringMap key value -> Maybe value
+lookup :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe v
 lookup key (ExpiringMap expSet hashMap) =
   B.lookup key hashMap
 
-setCurrentTime :: (Eq key, Ord key, Hashable key) => UTCTime -> ExpiringMap key value -> ExpiringMap key value
+setCurrentTime :: (Eq k, Ord k, Hashable k) => UTCTime -> ExpiringMap k v -> ExpiringMap k v
 setCurrentTime time (ExpiringMap expSet hashMap) =
   ExpiringMap newExpSet newHashMap
     where
