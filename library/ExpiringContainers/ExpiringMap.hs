@@ -8,6 +8,10 @@ module ExpiringContainers.ExpiringMap
   empty,
   singleton,
 
+  -- * List
+  toList,
+  fromList,
+
   -- * Transformations
 
   -- * Basic interface
@@ -25,6 +29,7 @@ import Data.Time
 import Data.Maybe
 import Prelude hiding (lookup, null)
 import Data.Hashable
+import qualified Data.Foldable as D
 import qualified Data.List as C
 import qualified GHC.Exts as G
 
@@ -36,6 +41,26 @@ data ExpiringMap key value =
     (A.ExpiringSet key)
     (B.HashMap key value)
     deriving (Foldable)
+
+{--------------------------------------------------------------------
+  Lists
+--------------------------------------------------------------------}
+instance (Eq a, Hashable a) => G.IsList (ExpiringMap a b) where
+  type Item (ExpiringMap a b) = (UTCTime, a, b)
+  toList = toList
+  fromList = fromList
+
+toList :: (Eq k, Hashable k) => ExpiringMap k v -> [(UTCTime, k, v)]
+toList (ExpiringMap expiringSet hashMap) =
+  fmap (\(time, key) -> (time, key, hashMap B.! key)) $ A.toList expiringSet
+
+fromList :: (Eq k, Hashable k) =>
+     [(UTCTime, k, v)] -> ExpiringMap k v
+fromList list = ExpiringMap expSet hashMap
+  where
+    (expSetList, hashMapList) = D.foldl' (\(xs, ys) (t,k,v) -> ((t,k) : xs, (k,v) : ys)) ([], []) list
+    expSet = A.fromList expSetList
+    hashMap = B.fromList hashMapList
 
 {--------------------------------------------------------------------
   Construction
