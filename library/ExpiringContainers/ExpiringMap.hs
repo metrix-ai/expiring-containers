@@ -42,7 +42,7 @@ data ExpiringMap key value =
   ExpiringMap
     (A.ExpiringSet key)
     (B.HashMap key value)
-    deriving (Foldable)
+    deriving (Eq, Foldable, Show)
 
 {--------------------------------------------------------------------
   Transformations
@@ -98,19 +98,19 @@ size (ExpiringMap _ hashMap) = B.size hashMap
 member :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Bool
 member key (ExpiringMap _ hashMap) = B.member key hashMap
 
-insert :: (Eq k, Ord k, Hashable k) => UTCTime {-^ Expiry time -} -> k -> v -> ExpiringMap k v -> ExpiringMap k v
+insert :: (Eq k,  Hashable k) => UTCTime {-^ Expiry time -} -> k -> v -> ExpiringMap k v -> ExpiringMap k v
 insert time key value (ExpiringMap expSet hashMap) =
   ExpiringMap (A.insert time key expSet) (B.insert key value hashMap)
 
-delete :: (Eq k, Ord k, Hashable k) => UTCTime {-^ Expiry time -} -> k  -> ExpiringMap k v -> ExpiringMap k v
-delete time key (ExpiringMap expSet hashMap) =
-  ExpiringMap (A.delete time key expSet) (B.delete key hashMap)
+delete :: (Eq k, Hashable k) => k -> ExpiringMap k v -> ExpiringMap k v
+delete key (ExpiringMap expSet hashMap) =
+  ExpiringMap (A.delete key expSet) (B.delete key hashMap)
 
 lookup :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe v
 lookup key (ExpiringMap expSet hashMap) =
   B.lookup key hashMap
 
-setCurrentTime :: (Eq k, Ord k, Hashable k) => UTCTime -> ExpiringMap k v -> ExpiringMap k v
+setCurrentTime :: (Eq k, Hashable k) => UTCTime -> ExpiringMap k v -> ExpiringMap k v
 setCurrentTime time (ExpiringMap expSet hashMap) =
   ExpiringMap newExpSet newHashMap
     where
