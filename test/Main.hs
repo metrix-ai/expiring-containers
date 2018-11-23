@@ -88,6 +88,12 @@ expiringSet =
     -- ,
     testProperty "member" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value :: Int) ->
     (A.member value $ A.delete value $ A.insert key value $ A.fromList list) === False
+    ,
+    testProperty "lookup not found" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value :: Int) ->
+        (A.lookup value $ A.delete value $ A.insert key value $ A.fromList list) === Nothing
+    ,
+    testProperty "lookup found" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value :: Int) ->
+        (A.lookup value $ A.insertForce key value $ A.fromList list) === (Just $ timestampUtcTime $ utcTimeTimestamp key)
   ]
 
 expiringMap =

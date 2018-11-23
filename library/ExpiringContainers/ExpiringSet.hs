@@ -20,6 +20,7 @@ module ExpiringContainers.ExpiringSet
   member,
   memberTime,
   size,
+  lookup,
 
   -- * Filter
   clean,
@@ -32,7 +33,7 @@ import qualified Data.Foldable as Foldable
 import qualified GHC.Exts as G
 import Data.Time
 import Data.Int
-import Prelude hiding(map, null)
+import Prelude hiding(map, null, lookup)
 import GHC.Generics
 import Timestamp
 import Data.Hashable
@@ -150,7 +151,13 @@ insertForce time value (ExpiringSet intMultiMap hashMap) =
       Just k -> IntMap.insert key value $ IntMap.delete k value intMultiMap
 
 {-|
+Check whether the set contains the element, and if it does
+return the element's associated time.
+-}
+lookup :: (Eq a, Hashable a) => a -> ExpiringSet a -> Maybe UTCTime
+lookup a (ExpiringSet _ hashMap) = timestampUtcTime . Timestamp . fromIntegral <$> HashMap.lookup a hashMap
 
+{-|
 -}
 insert :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
 insert time value (ExpiringSet intMultiMap hashMap) =
