@@ -22,6 +22,7 @@ module ExpiringContainers.ExpiringMap
   member,
   insert,
   delete,
+  lookupWithTime,
 )
 where
 
@@ -116,3 +117,7 @@ setCurrentTime time (ExpiringMap expSet hashMap) =
     where
       (keys, newExpSet) = ExpiringSet.clean time expSet
       newHashMap = List.foldl' (flip HashMap.delete) hashMap keys
+
+lookupWithTime :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe (v, UTCTime)
+lookupWithTime key (ExpiringMap expSet hashMap) =
+  HashMap.lookup key hashMap >>= (\v -> fmap ((,) v) $ ExpiringSet.lookup key expSet)
