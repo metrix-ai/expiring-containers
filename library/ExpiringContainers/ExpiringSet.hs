@@ -50,7 +50,8 @@ data ExpiringSet element =
     (HashMap.HashMap element Int)
     deriving(Eq, Show, Generic)
 
-
+instance Foldable.Foldable ExpiringSet where
+  foldr f b (ExpiringSet intMultimap _)  = foldr f b $ IntMap.elems intMultimap
 
 {--------------------------------------------------------------------
   Transformations
@@ -74,7 +75,6 @@ hashToMap hashMap =
 
 mapKeys :: (Eq k2, Hashable k2) => (k1 -> k2) -> HashMap.HashMap k1 a -> HashMap.HashMap k2 a
 mapKeys f hashMap = HashMap.fromList $ fmap (first f) $ (HashMap.toList hashMap)
-
 
 {--------------------------------------------------------------------
   Lists

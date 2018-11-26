@@ -94,6 +94,12 @@ expiringSet =
     ,
     testProperty "lookup found" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value :: Int) ->
         (A.lookup value $ A.insertForce key value $ A.fromList list) === (Just $ timestampUtcTime $ utcTimeTimestamp key)
+    ,
+    testProperty "foldr" $ \ (list :: [(UTCTime, Int)], seed :: Int) ->
+        (foldr (\a b -> a + b) seed $ A.fromList list) === (foldr (\(t, a) b -> a + b) seed $ A.toList $ A.fromList list)
+    ,
+    testProperty "foldMap" $ \ (list :: [(UTCTime, Int)]) ->
+        (foldMap (show) $ A.fromList list) === (foldMap (\(t, a) -> show a) $ A.toList $ A.fromList list)
   ]
 
 expiringMap =
