@@ -15,6 +15,7 @@ module ExpiringContainers.ExpiringMap
   -- * Transformations
   map,
   mapWithKey,
+  traverseWithKey,
 
   -- * Basic interface
   null,
@@ -45,6 +46,12 @@ data ExpiringMap key value =
     (HashMap.HashMap key value)
     deriving (Eq, Foldable, Show)
 
+instance Functor (ExpiringMap key) where
+  fmap = map
+
+instance Traversable (ExpiringMap key) where
+  traverse f = traverseWithKey (const f)
+
 {--------------------------------------------------------------------
   Transformations
 --------------------------------------------------------------------}
@@ -55,6 +62,10 @@ map f = mapWithKey (const f)
 mapWithKey :: (k -> v1 -> v2) -> ExpiringMap k v1 -> ExpiringMap k v2
 mapWithKey f (ExpiringMap expiringSet hashMap) =
   ExpiringMap expiringSet $ HashMap.mapWithKey f hashMap
+
+traverseWithKey :: Applicative f => (k -> v1 -> f v2) -> ExpiringMap k v1
+  -> f (ExpiringMap k v2)
+traverseWithKey f (ExpiringMap expiringSet hashMap) = ExpiringMap expiringSet <$> HashMap.traverseWithKey f hashMap
 
 {--------------------------------------------------------------------
   Lists

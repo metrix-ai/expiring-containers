@@ -186,6 +186,10 @@ expiringMap =
     testProperty "lookupWithTime" $ \ (list :: [(UTCTime, Int, Int)], key :: Int) ->
     let map' = B.fromList list
     in (B.lookupWithTime key map') === (foldr (\(t, k, v) m -> if k == key then (Just (v, t)) else m ) Nothing $ B.toList $ B.fromList list)
+    ,
+    testProperty "traverse" $ \ (list :: [(UTCTime, Int, Int)]) ->
+    let map' = B.fromList list   
+    in (traverse (\a -> [a + 1]) map') === [fmap (\a -> a + 1) map'] 
     -- ,
     -- testProperty "insert and delete" $ \ (list :: [(UTCTime, Int, Int)], time :: UTCTime, key :: Int, value :: Int) ->
     -- let list2 = C.nubBy (\(t1,k1,v1) (t2,k2,v2) -> k1 == k2) list
