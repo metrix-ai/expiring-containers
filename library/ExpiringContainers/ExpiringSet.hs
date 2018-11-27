@@ -43,10 +43,12 @@ import Control.Arrow
 Set that expiring with time
 -}
 data ExpiringSet element =
+  {-|
+  * Elements indexed by timestamps
+  * Timestamps indexed by elements
+  -}
   ExpiringSet
-    {-| Elements indexed by timestamps -}
     (IntMap.IntMultimap element)
-    {-| Timestamps indexed by elements -}
     (HashMap.HashMap element Int)
     deriving(Eq, Show, Generic)
 
