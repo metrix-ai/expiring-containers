@@ -6,7 +6,6 @@ import Test.Tasty
 import Test.Tasty.Runners
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
--- import Test.QuickCheck.Instances
 import Test.QuickCheck.Instances.Time
 import qualified ExpiringContainers.ExpiringSet as A
 import qualified ExpiringContainers.ExpiringMap as B
@@ -73,19 +72,6 @@ expiringSet =
         f = applyFun fun
     in A.map f (A.insert key value1 set) === A.insert key (f value1) (A.map f set)
     ,
-    -- testProperty "map delete" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value1 :: Int, fun :: (Fun Int Char)) ->
-    -- let set = A.fromList list
-    --     f = applyFun fun
-    -- in A.map f (A.delete value1 set) === A.delete (f value1) (A.map f set)
-    -- ,
-    -- testProperty "clean" $ \ (list :: [(UTCTime, Int)], key :: UTCTime) ->
-    -- let (list1, expire) = A.clean key $ A.fromList list
-    -- in (D.fromList $ fmap (\(t,a) -> a) $ C.filter (\(t,a) -> t < key) list) === (D.fromList list1)
-    -- ,
-    -- testProperty "mapping" $ \ (list :: [(UTCTime, Int)]) ->
-    -- (D.fromList $ map (testFuncL . (\(t,a) -> (,) (timestampUtcTime $ utcTimeTimestamp t) a)) list) ===
-    --    (D.fromList $ A.toList $ A.map testFunc $ A.fromList list)
-    -- ,
     testProperty "member" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value :: Int) ->
     (A.member value $ A.delete value $ A.insert key value $ A.fromList list) === False
     ,
@@ -172,14 +158,6 @@ expiringMap =
         f = applyFun fun
     in fmap f (B.lookup key map') === B.lookup key (B.map f map')
     ,
-    -- testProperty "map" $ \ (list :: [(UTCTime, Int, Int)], time :: UTCTime, key :: Int, value :: Int) ->
-    -- let map' = B.fromList list
-    -- in fmap (\x -> B.insert time key value map') (B.lookup key map') === (map' <$ (B.lookup key map'))
-    -- ,
-    -- testProperty "clean" $ \ (list :: [(UTCTime, Int)], key :: UTCTime) ->
-    -- let (list1, expire) = A.clean key $ A.fromList list
-    -- in (D.fromList $ fmap (\(t,a) -> a) $ C.filter (\(t,a) -> t < key) list) === (D.fromList list1)
-    -- ,
     testProperty "member" $ \ (list :: [(UTCTime, Int, Int)], time :: UTCTime, key :: Int, value :: Int) ->
     (B.member key $ B.delete key $ B.insert time key value $ B.fromList list) === False
     ,
@@ -189,13 +167,7 @@ expiringMap =
     ,
     testProperty "traverse" $ \ (list :: [(UTCTime, Int, Int)]) ->
     let map' = B.fromList list   
-    in (traverse (\a -> [a + 1]) map') === [fmap (\a -> a + 1) map'] 
-    -- ,
-    -- testProperty "insert and delete" $ \ (list :: [(UTCTime, Int, Int)], time :: UTCTime, key :: Int, value :: Int) ->
-    -- let list2 = C.nubBy (\(t1,k1,v1) (t2,k2,v2) -> k1 == k2) list
-    -- in (D.fromList $ fmap (\(t,a,b) -> (,,) (timestampUtcTime $ utcTimeTimestamp t) a b) $
-    --  C.deleteBy (\(t1,k1,v1) (t2,k2,v2) -> k1 == k2) (time, key, value) list2) === (D.fromList $ B.toList $ B.delete key $ B.insert time key value $ B.fromList list)
-
+    in (traverse (\a -> [a + 1]) map') === [fmap (\a -> a + 1) map']
   ]
 
 testFunc :: (Show a) => a -> String
