@@ -2,7 +2,7 @@ module ExpiringContainers.ExpiringMap
 (
   ExpiringMap,
   lookup,
-  setCurrentTime,
+  deleteEntriesBefore,
 
   -- * Construction
   empty,
@@ -122,12 +122,13 @@ lookup :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe v
 lookup key (ExpiringMap expSet hashMap) =
   HashMap.lookup key hashMap
 
-setCurrentTime :: (Eq k, Hashable k) => UTCTime -> ExpiringMap k v -> ExpiringMap k v
-setCurrentTime time (ExpiringMap expSet hashMap) =
-  ExpiringMap newExpSet newHashMap
+deleteEntriesBefore :: (Eq k, Hashable k) => UTCTime -> ExpiringMap k v -> ([(k, v)], ExpiringMap k v)
+deleteEntriesBefore time (ExpiringMap expSet hashMap) =
+  (listElem, ExpiringMap newExpSet newHashMap)
     where
-      (keys, newExpSet) = ExpiringSet.clean time expSet
+      (keys, newExpSet) = ExpiringSet.deleteEntriesBefore time expSet
       newHashMap = List.foldl' (flip HashMap.delete) hashMap keys
+      listElem = filter (\(k, _) -> elem k keys) $ HashMap.toList hashMap
 
 lookupWithTime :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe (v, UTCTime)
 lookupWithTime key (ExpiringMap expSet hashMap) =
