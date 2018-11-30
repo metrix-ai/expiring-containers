@@ -1,5 +1,5 @@
 name: expiring-containers
-version: 0.2.2.1
+version: 0.3
 synopsis: Expiring containers
 category: Time, Containers
 homepage: https://github.com/metrix-ai/expiring-containers

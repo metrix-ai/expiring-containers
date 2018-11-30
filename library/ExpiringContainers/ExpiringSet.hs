@@ -23,7 +23,7 @@ module ExpiringContainers.ExpiringSet
   lookup,
 
   -- * Filter
-  clean,
+  deleteEntriesBefore,
 )
 where
 
@@ -112,8 +112,8 @@ singleton time v = construct $ HashMap.singleton v key
 {-|
 Clean expiringset
 -}
-clean :: (Hashable element, Eq element) => UTCTime -> ExpiringSet element -> ([element], ExpiringSet element)
-clean time (ExpiringSet intMultiMap hashMap) =
+deleteEntriesBefore :: (Hashable element, Eq element) => UTCTime -> ExpiringSet element -> ([element], ExpiringSet element)
+deleteEntriesBefore time (ExpiringSet intMultiMap hashMap) =
   (listElem, ExpiringSet newMultiMap newHash)
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time

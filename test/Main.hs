@@ -168,6 +168,16 @@ expiringMap =
     testProperty "traverse" $ \ (list :: [(UTCTime, Int, Int)]) ->
     let map' = B.fromList list   
     in (traverse (\a -> [a + 1]) map') === [fmap (\a -> a + 1) map']
+    ,
+    testProperty "deleteEntriesBefore" $ \ (list :: [(UTCTime, Int, Int)], expiringTime :: UTCTime) ->
+    let map' = B.fromList list
+        (deleteList, _) = B.deleteEntriesBefore expiringTime map'
+    in deleteList === (fmap (\ (_, k, v) -> (k, v)) $ filter (\ (t, _, _) -> t < expiringTime) $ B.toList $ B.fromList list)
+    ,
+    testProperty "Entries after delete" $ \ (list :: [(UTCTime, Int, Int)], expiringTime :: UTCTime) ->
+    let map' = B.fromList list
+        (_, newMap) = B.deleteEntriesBefore expiringTime map'
+    in (B.toList newMap) === (filter (\ (t, _, _) -> t >= expiringTime) $ B.toList $ B.fromList list)
   ]
 
 testFunc :: (Show a) => a -> String
