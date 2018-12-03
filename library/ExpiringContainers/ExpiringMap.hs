@@ -22,6 +22,7 @@ module ExpiringContainers.ExpiringMap
   size,
   member,
   insert,
+  insertIfNotOlder,
   delete,
   lookupWithTime,
 )
@@ -114,6 +115,15 @@ insert :: (Eq k,  Hashable k) => UTCTime {-^ Expiry time -} -> k -> v -> Expirin
 insert time key value (ExpiringMap expSet hashMap) =
   ExpiringMap (ExpiringSet.insert time key expSet) (HashMap.insert key value hashMap)
 
+insertIfNotOlder :: (Eq k,  Hashable k) => UTCTime {-^ Expiry time -} -> k -> v -> ExpiringMap k v -> ExpiringMap k v
+insertIfNotOlder time key value expMap@(ExpiringMap expSet hashMap) =
+  let ifOlder = case (ExpiringSet.lookup key expSet) of
+        Nothing -> False
+        Just t -> if time < t then True else False
+  in if ifOlder 
+    then expMap 
+    else (ExpiringMap (ExpiringSet.insert time key expSet) (HashMap.insert key value hashMap))
+      
 delete :: (Eq k, Hashable k) => k -> ExpiringMap k v -> ExpiringMap k v
 delete key (ExpiringMap expSet hashMap) =
   ExpiringMap (ExpiringSet.delete key expSet) (HashMap.delete key hashMap)
