@@ -142,6 +142,10 @@ containsTime time (ExpiringSet intMultiMap _) = IntMap.member key intMultiMap
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
 
+{-|
+Insert an element in a set. 
+If the set already contains an element equal to the given value, it is replaced with the new value.
+-}
 insert :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
 insert time value (ExpiringSet intMultiMap hashMap) =
   ExpiringSet newMultiMap (HashMap.insert value key hashMap)
@@ -153,6 +157,9 @@ insert time value (ExpiringSet intMultiMap hashMap) =
       Just k -> IntMap.insert key value $ IntMap.delete k value intMultiMap
 
 {-|
+Insert an element in a set. 
+If the set already contains an element equal to the given value, 
+the old values is replaced only if the previous time is older than the new one.
 -}
 insertIfNotOlder :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
 insertIfNotOlder time value (ExpiringSet intMultiMap hashMap) =

@@ -1,8 +1,6 @@
 module ExpiringContainers.ExpiringMap
 (
   ExpiringMap,
-  lookup,
-  deleteEntriesBefore,
 
   -- * Construction
   empty,
@@ -25,6 +23,10 @@ module ExpiringContainers.ExpiringMap
   insertIfNotOlder,
   delete,
   lookupWithTime,
+  lookup,
+
+  -- * Filter
+  deleteEntriesBefore,
 )
 where
 
@@ -111,10 +113,19 @@ size (ExpiringMap _ hashMap) = HashMap.size hashMap
 member :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Bool
 member key (ExpiringMap _ hashMap) = HashMap.member key hashMap
 
+{-|
+Associate the specified value with the specified key and time in this map.
+If this map previously contained a mapping for the key and the time, the old values is replaced.
+-}
 insert :: (Eq k,  Hashable k) => UTCTime {-^ Expiry time -} -> k -> v -> ExpiringMap k v -> ExpiringMap k v
 insert time key value (ExpiringMap expSet hashMap) =
   ExpiringMap (ExpiringSet.insert time key expSet) (HashMap.insert key value hashMap)
 
+{-|
+Associate the specified value with the specified key and time in this map.
+Of this map previously contained a mapping for the key and the time; 
+the old values is replaced only if the previous time is older than the new one. 
+-}
 insertIfNotOlder :: (Eq k,  Hashable k) => UTCTime {-^ Expiry time -} -> k -> v -> ExpiringMap k v -> ExpiringMap k v
 insertIfNotOlder time key value expMap@(ExpiringMap expSet hashMap) =
   let ifOlder = case (ExpiringSet.lookup key expSet) of
@@ -132,6 +143,13 @@ lookup :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe v
 lookup key (ExpiringMap expSet hashMap) =
   HashMap.lookup key hashMap
 
+lookupWithTime :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe (v, UTCTime)
+lookupWithTime key (ExpiringMap expSet hashMap) =
+  HashMap.lookup key hashMap >>= (\v -> fmap ((,) v) $ ExpiringSet.lookup key expSet)
+
+{--------------------------------------------------------------------
+  Filter
+--------------------------------------------------------------------}
 deleteEntriesBefore :: (Eq k, Hashable k) => UTCTime -> ExpiringMap k v -> ([(k, v)], ExpiringMap k v)
 deleteEntriesBefore time (ExpiringMap expSet hashMap) =
   (listElem, ExpiringMap newExpSet newHashMap)
@@ -139,7 +157,3 @@ deleteEntriesBefore time (ExpiringMap expSet hashMap) =
       (keys, newExpSet) = ExpiringSet.deleteEntriesBefore time expSet
       newHashMap = List.foldl' (flip HashMap.delete) hashMap keys
       listElem = fmap (\k -> (k, hashMap HashMap.! k)) keys
-
-lookupWithTime :: (Eq k, Hashable k) => k -> ExpiringMap k v -> Maybe (v, UTCTime)
-lookupWithTime key (ExpiringMap expSet hashMap) =
-  HashMap.lookup key hashMap >>= (\v -> fmap ((,) v) $ ExpiringSet.lookup key expSet)
