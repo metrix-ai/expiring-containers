@@ -15,10 +15,10 @@ module ExpiringContainers.ExpiringSet
   -- * Basic interface
   null,
   insert,
-  insertForce,
+  insertIfNotOlder,
   delete,
   member,
-  memberTime,
+  containsTime,
   size,
   lookup,
 
@@ -40,7 +40,7 @@ import Data.Hashable
 import Control.Arrow
 
 {-|
-Set that expiring with time
+Set extended with functionality of deleting outdated elements
 -}
 data ExpiringSet element =
   {-|
@@ -137,13 +137,13 @@ size (ExpiringSet _ hashMap) = HashMap.size hashMap
 member :: (Eq a, Hashable a) => a -> ExpiringSet a -> Bool
 member a (ExpiringSet _ hashMap) = HashMap.member a hashMap
 
-memberTime :: UTCTime -> ExpiringSet a -> Bool
-memberTime time (ExpiringSet intMultiMap _) = IntMap.member key intMultiMap
+containsTime :: UTCTime -> ExpiringSet a -> Bool
+containsTime time (ExpiringSet intMultiMap _) = IntMap.member key intMultiMap
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
 
-insertForce :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
-insertForce time value (ExpiringSet intMultiMap hashMap) =
+insert :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
+insert time value (ExpiringSet intMultiMap hashMap) =
   ExpiringSet newMultiMap (HashMap.insert value key hashMap)
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
@@ -153,16 +153,9 @@ insertForce time value (ExpiringSet intMultiMap hashMap) =
       Just k -> IntMap.insert key value $ IntMap.delete k value intMultiMap
 
 {-|
-Check whether the set contains the element, and if it does
-return the element's associated time.
 -}
-lookup :: (Eq a, Hashable a) => a -> ExpiringSet a -> Maybe UTCTime
-lookup a (ExpiringSet _ hashMap) = timestampUtcTime . Timestamp . fromIntegral <$> HashMap.lookup a hashMap
-
-{-|
--}
-insert :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
-insert time value (ExpiringSet intMultiMap hashMap) =
+insertIfNotOlder :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
+insertIfNotOlder time value (ExpiringSet intMultiMap hashMap) =
   ExpiringSet newMultiMap newHash
   where
     key = fromIntegral $ (timestampMicroSecondsInt64 . utcTimeTimestamp) time
@@ -172,6 +165,13 @@ insert time value (ExpiringSet intMultiMap hashMap) =
       Just k -> if key >= k
         then (IntMap.insert key value $ IntMap.delete k value intMultiMap, HashMap.insert value key hashMap)
         else (intMultiMap, hashMap)
+
+{-|
+Check whether the set contains the element, and if it does
+return the element's associated time.
+-}
+lookup :: (Eq a, Hashable a) => a -> ExpiringSet a -> Maybe UTCTime
+lookup a (ExpiringSet _ hashMap) = timestampUtcTime . Timestamp . fromIntegral <$> HashMap.lookup a hashMap
 
 deleteByTime :: (Hashable element, Eq element) => UTCTime {-^ Expiry time -} -> element -> ExpiringSet element -> ExpiringSet element
 deleteByTime time element (ExpiringSet _ hashMap) =

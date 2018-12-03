@@ -70,7 +70,7 @@ expiringSet =
     testProperty "map insert" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value1 :: Int, fun :: (Fun Int Char)) ->
     let set = A.fromList list
         f = applyFun fun
-    in A.map f (A.insert key value1 set) === A.insert key (f value1) (A.map f set)
+    in A.map f (A.insertIfNotOlder key value1 set) === A.insertIfNotOlder key (f value1) (A.map f set)
     ,
     testProperty "member" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value :: Int) ->
     (A.member value $ A.delete value $ A.insert key value $ A.fromList list) === False
@@ -79,7 +79,7 @@ expiringSet =
         (A.lookup value $ A.delete value $ A.insert key value $ A.fromList list) === Nothing
     ,
     testProperty "lookup found" $ \ (list :: [(UTCTime, Int)], key :: UTCTime, value :: Int) ->
-        (A.lookup value $ A.insertForce key value $ A.fromList list) === (Just $ timestampUtcTime $ utcTimeTimestamp key)
+        (A.lookup value $ A.insert key value $ A.fromList list) === (Just $ timestampUtcTime $ utcTimeTimestamp key)
     ,
     testProperty "foldr" $ \ (list :: [(UTCTime, Int)], seed :: Int) ->
         (foldr (\a b -> a + b) seed $ A.fromList list) === (foldr (\(t, a) b -> a + b) seed $ A.toList $ A.fromList list)
